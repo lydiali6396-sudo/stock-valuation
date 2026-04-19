@@ -27,8 +27,12 @@ authentication_status = authenticator.login(location='main')
 
 # ── 逻辑判断 ──────────────────────────────────────────────
 
-if authentication_status:
-    # ---- 登录成功：显示原有内容 ----
+if st.session_state["authentication_status"]:
+    # 登录成功
+    authenticator.logout(button_name='Logout', location='sidebar') # 登出也要用关键词传参
+    
+    # 使用 st.session_state["name"] 来获取姓名
+    st.markdown(f'<p class="main-title">📈 股票估值分析工具 - 欢迎 {st.session_state["name"]}</p>', unsafe_allow_html=True)
     
     # 在侧边栏添加登出按钮
     authenticator.logout('Logout', 'sidebar')
@@ -118,10 +122,8 @@ if authentication_status:
     st.divider()
     st.markdown("**使用流程：** 选择模型 → 下载 Excel 模板 → 填入数据 → 上传 → 点击计算 → 查看结果与图表")
     
-elif authentication_status == False:
-    # ---- 登录失败 ----
+elif st.session_state["authentication_status"] is False:
     st.error('用户名或密码错误')
 
-elif authentication_status is None:
-    # ---- 未输入状态 ----
+elif st.session_state["authentication_status"] is None:
     st.warning('请输入用户名和密码')
