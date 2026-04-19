@@ -1,0 +1,11 @@
+credentials:
+  usernames:
+    lydia:
+      email: lydia@example.com
+      name: Lydia
+      password: "$2b$12$KIXQ..."  # 加密后的密码（后面教你生成）
+
+cookie:
+  name: stock_app_cookie
+  key: some_random_secret_key
+  expiry_days: 7
