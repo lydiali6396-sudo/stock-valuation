@@ -3,7 +3,7 @@ credentials:
     lydia:
       email: lydia@example.com
       name: Lydia
-      password: "$2b$12$KIXQ..."  # 加密后的密码（后面教你生成）
+      password: "1f80b2e9513d1c82c94a28b577e0f65ccc1917a4a8c278a99a7e70441e0fb98d"  # 加密后的密码（后面教你生成）
 
 cookie:
   name: stock_app_cookie
