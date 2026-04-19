@@ -1,4 +1,22 @@
 import streamlit as st
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
+
+# 读取配置
+with open('config.yaml') as file:
+    config = yaml.load(file, Loader=SafeLoader)
+
+# 创建认证对象
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days']
+)
+
+# 登录
+name, authentication_status, username = authenticator.login('Login', 'main')
 
 st.set_page_config(
     page_title="股票估值分析工具",
