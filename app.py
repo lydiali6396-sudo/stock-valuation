@@ -23,7 +23,7 @@ authenticator = stauth.Authenticate(
 )
 
 # 登录
-name, authentication_status, username = authenticator.login('Login', 'main')
+authentication_status = authenticator.login(location='main')
 
 # ── 逻辑判断 ──────────────────────────────────────────────
 
