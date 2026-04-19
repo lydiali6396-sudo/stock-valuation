@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. 读取和保存配置文件的函数
+# 2. 安全读取和保存配置文件
 def load_config():
     config_path = 'config.yaml'
     if not os.path.exists(config_path):
@@ -23,7 +23,7 @@ def load_config():
 
 def save_config(config):
     with open('config.yaml', 'w', encoding='utf-8') as file:
-        yaml.dump(config, file, default_flow_style=False, allow_unicode=True)
+        yaml.dump(config, file, default_flow_style=False)
 
 config = load_config()
 
@@ -35,28 +35,35 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days']
 )
 
-# 4. 渲染登录/注册逻辑
-# 我们可以在页面上做一个简单的切换，或者在登录框下方显示注册按钮
-tab1, tab2 = st.tabs(["🔑 用户登录", "📝 新用户注册"])
+# 4. 登录/注册逻辑处理
+if not st.session_state.get("authentication_status"):
+    # 在未登录时，提供一个选择框切换 登录 或 注册
+    tab1, tab2 = st.tabs(["🔐 用户登录", "📝 新用户注册"])
+    
+    with tab1:
+        # 登录界面
+        authenticator.login(location='main')
+        if st.session_state["authentication_status"] is False:
+            st.error('用户名/密码错误')
+        elif st.session_state["authentication_status"] is None:
+            st.warning('请输入用户名和密码')
 
-with tab1:
-    name, authentication_status, username = authenticator.login(location='main')
-
-with tab2:
-    if not st.session_state["authentication_status"]:
+    with tab2:
+        # 注册界面
         try:
-            # 渲染注册组件
-            email_of_registered_user, username_of_registered_user, name_of_registered_user = authenticator.register_user(location='main', pre_authorization=False)
+            # pre_authorized 是预授权名单，如果不限制则留空列表
+            email_of_registered_user, username_of_registered_user, name_of_registered_user = authenticator.register_user(pre_authorized=[], location='main')
             if email_of_registered_user:
-                # 重要：将新用户信息写回 YAML 文件
+                # 重要：注册成功后必须将 config 对象写回 yaml 文件
                 save_config(config)
-                st.success('注册成功！现在您可以切换到登录标签进行登录。')
+                st.success('注册成功！现在请切换到登录标签进行登录。')
         except Exception as e:
-            st.error(e)
+            st.error(f"注册出错: {e}")
 
-# 5. 登录状态逻辑判断
+# 5. 主界面逻辑（登录成功后）
 if st.session_state["authentication_status"]:
-    # ── 登录成功：渲染主界面 ──────────────────────────────────────────────
+    
+    # ── 侧边栏 ──────────────────────────────────────────────
     with st.sidebar:
         st.write(f"欢迎回来, **{st.session_state['name']}**")
         authenticator.logout('退出登录', 'sidebar')
@@ -96,6 +103,7 @@ if st.session_state["authentication_status"]:
     </style>
     """, unsafe_allow_html=True)
     
+    # ── 首页内容 ──────────────────────────────────────────────
     st.markdown('<p class="main-title">📈 股票估值分析工具</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="subtitle">你好 {st.session_state["name"]}，请选择估值模型，一键获得分析结果</p>', unsafe_allow_html=True)
     
@@ -118,14 +126,12 @@ if st.session_state["authentication_status"]:
                 <span class="tag">{m['tag']}</span>
             </div>
             """, unsafe_allow_html=True)
-            st.page_link(f"{m['page']}.py", label=f"进入分析 →", use_container_width=True)
+            # 注意：请确保你的项目目录下有 pages 文件夹且包含对应的 .py 文件
+            try:
+                st.page_link(f"{m['page']}.py", label=f"进入分析 →", use_container_width=True)
+            except:
+                st.button(f"{m['name']} (暂未上线)", disabled=True, key=f"btn_{i}")
             st.write("") 
     
     st.divider()
     st.info("**使用流程：** 选择模型 → 下载 Excel 模板 → 填入数据 → 上传 → 点击计算 → 查看结果与图表")
-
-elif st.session_state["authentication_status"] is False:
-    st.error('用户名或密码错误')
-
-elif st.session_state["authentication_status"] is None:
-    st.warning('请登录或注册以访问系统')
